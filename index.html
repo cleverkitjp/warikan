@@ -15,6 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="飲み会・グループ旅行などの割り勘を、合計金額と人数を入れるだけですぐ計算できる無料ツール。アプリ不要、管理職だけ多めに払うケースなどの個別精算にも対応。">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9727255179923866" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cleverkitjp.github.io/common.css">
   <style>
     :root {
       --bg1: #f4f7fb;
@@ -684,10 +685,20 @@
     // 初期表示
     updateResult();
   </script>
-  <footer>
-    <p class="back-to-top">
-     <a href="https://cleverkitjp.github.io/">cleverkitjp トップページへ戻る</a>
-    </p>
-  </footer>
+  <div id="ck-footer-container"></div>
+  <script>
+    (function() {
+      var container = document.getElementById('ck-footer-container');
+      if (!container) return;
+
+      fetch('https://cleverkitjp.github.io/footer.html')
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+          container.innerHTML = html;
+          try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+        })
+        .catch(function(e) {});
+    })();
+  </script>
 </body>
 </html>
