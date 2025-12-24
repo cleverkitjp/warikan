@@ -121,36 +121,9 @@
       color: var(--muted);
       font-weight: 600;
     }
-    .breakdown {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .breakdown span {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
     .keypad {
       display: grid;
       gap: 14px;
-    }
-    .keypad-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .keypad-title {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 600;
-      letter-spacing: 0.05em;
     }
     .keypad-grid {
       display: grid;
@@ -246,6 +219,11 @@
       <div class="title">割り勘</div>
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
     </div>
+    <div class="result" aria-live="polite">
+      <div class="result-main" id="perPerson">0円</div>
+      <div class="result-sub" id="difference">人数を入れてください</div>
+    </div>
+
     <div class="rounding">
       <div class="label">丸め単位</div>
       <div class="rounding-buttons" role="group" aria-label="丸め単位">
@@ -255,35 +233,18 @@
       </div>
     </div>
 
-    <div class="result" aria-live="polite">
-      <div class="result-inputs" role="group" aria-label="入力欄">
-        <button class="result-field active" type="button" data-target="total">
-          <span>合計金額</span>
-          <strong id="totalDisplay">0円</strong>
-        </button>
-        <button class="result-field" type="button" data-target="people">
-          <span>人数</span>
-          <strong id="peopleDisplay">1人</strong>
-        </button>
-      </div>
-      <div class="result-main" id="perPerson">0円</div>
-      <div class="result-sub" id="difference">人数を入れてください</div>
-      <div class="breakdown">
-        <div>
-          <span>丸め後合計</span>
-          <div id="roundedTotal">0円</div>
-        </div>
-        <div>
-          <span>差分</span>
-          <div id="diffAmount">0円</div>
-        </div>
-      </div>
+    <div class="result-inputs" role="group" aria-label="入力欄">
+      <button class="result-field active" type="button" data-target="total">
+        <span>合計金額</span>
+        <strong id="totalDisplay">0円</strong>
+      </button>
+      <button class="result-field" type="button" data-target="people">
+        <span>人数</span>
+        <strong id="peopleDisplay">1人</strong>
+      </button>
     </div>
 
     <div class="keypad" aria-label="数字キーパッド">
-      <div class="keypad-header">
-        <div class="keypad-title">入力対象: <span id="activeTargetLabel">合計金額</span></div>
-      </div>
       <div class="keypad-grid">
         <button class="key" type="button" data-value="1">1</button>
         <button class="key" type="button" data-value="2">2</button>
@@ -307,13 +268,10 @@
     const peopleDisplay = document.getElementById("peopleDisplay");
     const perPersonEl = document.getElementById("perPerson");
     const differenceEl = document.getElementById("difference");
-    const roundedTotalEl = document.getElementById("roundedTotal");
-    const diffAmountEl = document.getElementById("diffAmount");
     const roundButtons = document.querySelectorAll(".round-btn");
     const themeToggle = document.querySelector(".theme-toggle");
     const resultFields = document.querySelectorAll(".result-field");
     const keypadButtons = document.querySelectorAll(".keypad-grid .key");
-    const activeTargetLabel = document.getElementById("activeTargetLabel");
 
     const numberFormatter = new Intl.NumberFormat("ja-JP");
     let unit = 100;
@@ -344,7 +302,6 @@
       resultFields.forEach((field) => {
         field.classList.toggle("active", field.dataset.target === target);
       });
-      activeTargetLabel.textContent = target === "total" ? "合計金額" : "人数";
     };
 
     const setValue = (target, nextValue) => {
@@ -393,9 +350,6 @@
       const diff = roundedTotal - total;
 
       perPersonEl.textContent = `${formatYen(roundedPer)} / 人`;
-      roundedTotalEl.textContent = formatYen(roundedTotal);
-      diffAmountEl.textContent = formatYen(diff);
-
       if (diff === 0) {
         differenceEl.textContent = "ぴったり";
       } else if (diff > 0) {
@@ -431,7 +385,9 @@
 
     resultFields.forEach((field) => {
       field.addEventListener("click", () => {
-        updateActiveField(field.dataset.target);
+        const target = field.dataset.target;
+        updateActiveField(target);
+        setValue(target, "0");
       });
     });
 
