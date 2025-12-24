@@ -152,28 +152,6 @@
       font-weight: 600;
       letter-spacing: 0.05em;
     }
-    .target-switch {
-      display: inline-flex;
-      background: var(--toggle);
-      padding: 4px;
-      border-radius: 999px;
-      gap: 4px;
-      box-shadow: inset 0 0 0 1px var(--border);
-    }
-    .target-switch button {
-      border: 0;
-      background: transparent;
-      color: var(--text);
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .target-switch button.active {
-      background: var(--accent);
-      color: #fff;
-    }
     .keypad-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -211,28 +189,35 @@
       padding: 14px 0;
       letter-spacing: 0.08em;
     }
-    .inputs {
+    .result-inputs {
       display: grid;
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
-    .input-group {
-      display: grid;
-      gap: 6px;
-    }
-    .input {
-      width: 100%;
+    .result-field {
       border: 2px solid var(--border);
       border-radius: 18px;
-      padding: 14px 16px;
-      font-size: 34px;
-      font-weight: 700;
-      background: var(--bg);
+      padding: 12px;
+      background: var(--panel);
       color: var(--text);
-      text-align: right;
+      text-align: left;
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
       box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
     }
-    .input:focus {
-      outline: none;
+    .result-field span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .result-field strong {
+      font-size: 22px;
+      font-weight: 800;
+      text-align: right;
+    }
+    .result-field.active {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
     }
@@ -243,9 +228,6 @@
       .app {
         padding: 22px;
         border-radius: 22px;
-      }
-      .input {
-        font-size: 30px;
       }
       .round-btn {
         padding: 14px 0;
@@ -264,16 +246,6 @@
       <div class="title">割り勘</div>
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
     </div>
-    <div class="inputs" aria-label="金額入力">
-      <div class="input-group">
-        <label class="label" for="total">合計金額</label>
-        <input class="input" id="total" type="number" inputmode="numeric" min="0" value="0" />
-      </div>
-      <div class="input-group">
-        <label class="label" for="people">人数</label>
-        <input class="input" id="people" type="number" inputmode="numeric" min="1" value="1" />
-      </div>
-    </div>
     <div class="rounding">
       <div class="label">丸め単位</div>
       <div class="rounding-buttons" role="group" aria-label="丸め単位">
@@ -284,6 +256,16 @@
     </div>
 
     <div class="result" aria-live="polite">
+      <div class="result-inputs" role="group" aria-label="入力欄">
+        <button class="result-field active" type="button" data-target="total">
+          <span>合計金額</span>
+          <strong id="totalDisplay">0円</strong>
+        </button>
+        <button class="result-field" type="button" data-target="people">
+          <span>人数</span>
+          <strong id="peopleDisplay">1人</strong>
+        </button>
+      </div>
       <div class="result-main" id="perPerson">0円</div>
       <div class="result-sub" id="difference">人数を入れてください</div>
       <div class="breakdown">
@@ -300,11 +282,7 @@
 
     <div class="keypad" aria-label="数字キーパッド">
       <div class="keypad-header">
-        <div class="keypad-title">数字入力</div>
-        <div class="target-switch" role="group" aria-label="入力対象">
-          <button type="button" class="active" data-target="total">合計</button>
-          <button type="button" data-target="people">人数</button>
-        </div>
+        <div class="keypad-title">入力対象: <span id="activeTargetLabel">合計金額</span></div>
       </div>
       <div class="keypad-grid">
         <button class="key" type="button" data-value="1">1</button>
@@ -325,20 +303,23 @@
   </div>
 
   <script>
-    const totalInput = document.getElementById("total");
-    const peopleInput = document.getElementById("people");
+    const totalDisplay = document.getElementById("totalDisplay");
+    const peopleDisplay = document.getElementById("peopleDisplay");
     const perPersonEl = document.getElementById("perPerson");
     const differenceEl = document.getElementById("difference");
     const roundedTotalEl = document.getElementById("roundedTotal");
     const diffAmountEl = document.getElementById("diffAmount");
     const roundButtons = document.querySelectorAll(".round-btn");
     const themeToggle = document.querySelector(".theme-toggle");
-    const targetButtons = document.querySelectorAll(".target-switch button");
+    const resultFields = document.querySelectorAll(".result-field");
     const keypadButtons = document.querySelectorAll(".keypad-grid .key");
+    const activeTargetLabel = document.getElementById("activeTargetLabel");
 
     const numberFormatter = new Intl.NumberFormat("ja-JP");
     let unit = 100;
-    let activeInput = totalInput;
+    let totalValue = "0";
+    let peopleValue = "1";
+    let activeTarget = "total";
 
     const getTheme = () => {
       const stored = localStorage.getItem("theme");
@@ -358,39 +339,54 @@
 
     const formatYen = (value) => `${numberFormatter.format(Math.abs(value))}円`;
 
-    const syncActiveField = (target) => {
-      activeInput = target;
-      targetButtons.forEach((button) => {
-        button.classList.toggle("active", button.dataset.target === target.id);
+    const updateActiveField = (target) => {
+      activeTarget = target;
+      resultFields.forEach((field) => {
+        field.classList.toggle("active", field.dataset.target === target);
       });
+      activeTargetLabel.textContent = target === "total" ? "合計金額" : "人数";
     };
 
-    const updateNumericInput = (input, nextValue) => {
+    const setValue = (target, nextValue) => {
       const sanitized = nextValue.replace(/^0+(?=\d)/, "");
-      input.value = sanitized.length ? sanitized : "0";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+      const finalValue = sanitized.length ? sanitized : "0";
+      if (target === "total") {
+        totalValue = finalValue;
+      } else {
+        peopleValue = finalValue;
+      }
+      updateDisplay();
+      compute();
+    };
+
+    const updateDisplay = () => {
+      totalDisplay.textContent = formatYen(Number(totalValue));
+      const peopleNumber = Number(peopleValue || 0);
+      peopleDisplay.textContent = `${numberFormatter.format(peopleNumber)}人`;
     };
 
     const appendDigits = (digits) => {
-      const current = activeInput.value || "0";
+      const current = activeTarget === "total" ? totalValue : peopleValue;
       const next = current === "0" ? digits : `${current}${digits}`;
-      updateNumericInput(activeInput, next);
+      setValue(activeTarget, next);
     };
 
     const backspace = () => {
-      const current = activeInput.value || "0";
+      const current = activeTarget === "total" ? totalValue : peopleValue;
       const next = current.length <= 1 ? "0" : current.slice(0, -1);
-      updateNumericInput(activeInput, next);
+      setValue(activeTarget, next);
     };
 
     const clearAll = () => {
-      updateNumericInput(totalInput, "0");
-      updateNumericInput(peopleInput, "1");
+      totalValue = "0";
+      peopleValue = "1";
+      updateDisplay();
+      compute();
     };
 
     const compute = () => {
-      const total = Math.max(0, Number(totalInput.value));
-      const people = Math.max(1, Number(peopleInput.value));
+      const total = Math.max(0, Number(totalValue));
+      const people = Math.max(1, Number(peopleValue));
       const per = total / people;
       const roundedPer = Math.round(per / unit) * unit;
       const roundedTotal = roundedPer * people;
@@ -418,18 +414,24 @@
       });
     });
 
-    totalInput.addEventListener("input", compute);
-    peopleInput.addEventListener("input", compute);
-    totalInput.addEventListener("focus", () => syncActiveField(totalInput));
-    peopleInput.addEventListener("focus", () => syncActiveField(peopleInput));
-    totalInput.addEventListener("click", () => syncActiveField(totalInput));
-    peopleInput.addEventListener("click", () => syncActiveField(peopleInput));
-
-    targetButtons.forEach((button) => {
+    keypadButtons.forEach((button) => {
       button.addEventListener("click", () => {
-        const target = button.dataset.target === "total" ? totalInput : peopleInput;
-        syncActiveField(target);
-        target.focus();
+        if (button.dataset.value) {
+          appendDigits(button.dataset.value);
+          return;
+        }
+
+        if (button.dataset.action === "backspace") {
+          backspace();
+        } else if (button.dataset.action === "clear") {
+          clearAll();
+        }
+      });
+    });
+
+    resultFields.forEach((field) => {
+      field.addEventListener("click", () => {
+        updateActiveField(field.dataset.target);
       });
     });
 
@@ -439,7 +441,8 @@
     });
 
     applyTheme(getTheme());
-    syncActiveField(totalInput);
+    updateActiveField(activeTarget);
+    updateDisplay();
     compute();
   </script>
 </body>
