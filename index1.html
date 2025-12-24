@@ -3,7 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>割り勘ミニ電卓</title>
+  <title>割り勘計算｜100円・500円・1000円単位で割り勘できる</title>
+  <meta name="description" content="飲み会や忘年会・グループ旅行の割り勘を、合計金額と人数を入れるだけで自動計算。100円・500円・1000円単位で丸め、差分（多めに払う／お釣り）も自動表示。スマホ対応・登録不要。">
+  <meta property="og:title" content="割り勘計算｜100円・500円・1000円単位で割り勘できる">
+  <meta property="og:description" content="合計金額と人数を入れるだけ。100円・500円・1000円単位で丸めて割り勘を即計算。">
+  <meta property="og:image" content="https://cleverkitjp.github.io/warikan/ogp.png">
+  <link rel="stylesheet" href="https://cleverkitjp.github.io/common.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-F6517NYNFF"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-F6517NYNFF');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9727255179923866"
+    crossorigin="anonymous"></script>
   <style>
     :root {
       color-scheme: light dark;
@@ -38,9 +52,11 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 24px;
+      gap: 24px;
     }
     .app {
       width: min(560px, 100%);
@@ -50,6 +66,9 @@
       box-shadow: var(--shadow);
       display: grid;
       gap: 22px;
+    }
+    #ck-footer-container {
+      width: 100%;
     }
     .header {
       display: flex;
@@ -216,7 +235,7 @@
 <body>
   <div class="app">
     <div class="header">
-      <div class="title">割り勘</div>
+      <div class="title">割り勘電卓</div>
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
     </div>
     <div class="result" aria-live="polite">
@@ -399,6 +418,21 @@
     updateActiveField(activeTarget);
     updateDisplay();
     compute();
+  </script>
+  <div id="ck-footer-container"></div>
+  <script>
+    (function() {
+      var container = document.getElementById('ck-footer-container');
+      if (!container) return;
+
+      fetch('https://cleverkitjp.github.io/footer.html')
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+          container.innerHTML = html;
+          try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+        })
+        .catch(function(e) {});
+    })();
   </script>
 </body>
 </html>
