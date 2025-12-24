@@ -324,12 +324,17 @@
     const formatYen = (value) => `${numberFormatter.format(Math.abs(value))}円`;
 
     const normalizeInput = (input, value) => {
+      const sanitized = String(value ?? "").replace(/[^0-9]/g, "");
       if (input === peopleInput) {
-        const numeric = Math.max(1, Number(value || 0));
+        const numeric = Math.max(1, Number(sanitized || 0));
         return String(numeric);
       }
-      const numeric = Math.max(0, Number(value || 0));
+      const numeric = Math.max(0, Number(sanitized || 0));
       return String(numeric);
+    };
+
+    const sanitizeField = (input) => {
+      input.value = normalizeInput(input, input.value);
     };
 
     const appendKey = (key) => {
@@ -382,8 +387,14 @@
       });
     });
 
-    totalInput.addEventListener("input", compute);
-    peopleInput.addEventListener("input", compute);
+    totalInput.addEventListener("input", () => {
+      sanitizeField(totalInput);
+      compute();
+    });
+    peopleInput.addEventListener("input", () => {
+      sanitizeField(peopleInput);
+      compute();
+    });
 
     themeToggle.addEventListener("click", () => {
       const current = document.documentElement.getAttribute("data-theme") || "light";
