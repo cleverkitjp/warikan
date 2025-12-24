@@ -72,35 +72,11 @@
       box-shadow: inset 0 0 0 1px var(--border);
       min-width: 72px;
     }
-    .input-grid {
-      display: grid;
-      gap: 18px;
-    }
-    .field {
-      display: grid;
-      gap: 10px;
-    }
     .label {
       font-size: 14px;
       font-weight: 600;
       color: var(--muted);
       letter-spacing: 0.05em;
-    }
-    .input {
-      width: 100%;
-      font-size: 36px;
-      padding: 16px 18px;
-      border-radius: 18px;
-      border: 2px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      font-weight: 700;
-      text-align: right;
-    }
-    .input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
     }
     .rounding {
       display: grid;
@@ -134,6 +110,31 @@
       gap: 12px;
       border: 2px solid var(--border);
     }
+    .result-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .meta-card {
+      background: color-mix(in srgb, var(--panel) 85%, #000 15%);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: inset 0 0 0 1px var(--border);
+      display: grid;
+      gap: 6px;
+      text-align: center;
+    }
+    .meta-card span {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .meta-card strong {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
     .result-main {
       font-size: clamp(32px, 6vw, 48px);
       font-weight: 800;
@@ -160,6 +161,91 @@
       color: var(--muted);
       letter-spacing: 0.04em;
     }
+    .keypad {
+      display: grid;
+      gap: 14px;
+    }
+    .keypad-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .keypad-title {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .target-switch {
+      display: inline-flex;
+      background: var(--toggle);
+      padding: 4px;
+      border-radius: 999px;
+      gap: 4px;
+      box-shadow: inset 0 0 0 1px var(--border);
+    }
+    .target-switch button {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .target-switch button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .key {
+      border: 0;
+      border-radius: 18px;
+      padding: 16px 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      background: color-mix(in srgb, var(--panel) 80%, #000 20%);
+      box-shadow: inset 0 0 0 1px var(--border);
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+    .key:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .key.action {
+      background: #7b1f2d;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    .key.accent {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px var(--accent-strong);
+    }
+    .key.wide {
+      grid-column: span 3;
+      font-size: 18px;
+      padding: 14px 0;
+      letter-spacing: 0.08em;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
     @media (max-width: 480px) {
       body {
         padding: 12px;
@@ -168,12 +254,16 @@
         padding: 22px;
         border-radius: 22px;
       }
-      .input {
-        font-size: 30px;
+      .meta-card strong {
+        font-size: 18px;
       }
       .round-btn {
         padding: 14px 0;
         font-size: 18px;
+      }
+      .key {
+        padding: 14px 0;
+        font-size: 20px;
       }
     }
   </style>
@@ -185,16 +275,8 @@
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
     </div>
 
-    <div class="input-grid">
-      <label class="field">
-        <span class="label">合計金額（円）</span>
-        <input class="input" type="number" inputmode="numeric" min="0" step="1" id="total" value="0" />
-      </label>
-      <label class="field">
-        <span class="label">人数（人）</span>
-        <input class="input" type="number" inputmode="numeric" min="1" step="1" id="people" value="2" />
-      </label>
-    </div>
+    <input type="text" id="total" class="sr-only" value="0" />
+    <input type="text" id="people" class="sr-only" value="2" />
 
     <div class="rounding">
       <div class="label">丸め単位</div>
@@ -206,6 +288,16 @@
     </div>
 
     <div class="result" aria-live="polite">
+      <div class="result-meta" aria-label="入力状況">
+        <div class="meta-card">
+          <span>合計</span>
+          <strong id="totalDisplay">0円</strong>
+        </div>
+        <div class="meta-card">
+          <span>人数</span>
+          <strong id="peopleDisplay">2人</strong>
+        </div>
+      </div>
       <div class="result-main" id="perPerson">0円</div>
       <div class="result-sub" id="difference">人数を入れてください</div>
       <div class="breakdown">
@@ -219,6 +311,31 @@
         </div>
       </div>
     </div>
+
+    <div class="keypad" aria-label="数字キーパッド">
+      <div class="keypad-header">
+        <div class="keypad-title">数字入力</div>
+        <div class="target-switch" role="group" aria-label="入力対象">
+          <button type="button" class="active" data-target="total">合計</button>
+          <button type="button" data-target="people">人数</button>
+        </div>
+      </div>
+      <div class="keypad-grid">
+        <button class="key" type="button" data-value="1">1</button>
+        <button class="key" type="button" data-value="2">2</button>
+        <button class="key" type="button" data-value="3">3</button>
+        <button class="key" type="button" data-value="4">4</button>
+        <button class="key" type="button" data-value="5">5</button>
+        <button class="key" type="button" data-value="6">6</button>
+        <button class="key" type="button" data-value="7">7</button>
+        <button class="key" type="button" data-value="8">8</button>
+        <button class="key" type="button" data-value="9">9</button>
+        <button class="key" type="button" data-value="00">00</button>
+        <button class="key" type="button" data-value="0">0</button>
+        <button class="key accent" type="button" data-action="backspace">⌫</button>
+        <button class="key action wide" type="button" data-action="clear">クリア</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -228,29 +345,83 @@
     const differenceEl = document.getElementById("difference");
     const roundedTotalEl = document.getElementById("roundedTotal");
     const diffAmountEl = document.getElementById("diffAmount");
+    const totalDisplayEl = document.getElementById("totalDisplay");
+    const peopleDisplayEl = document.getElementById("peopleDisplay");
     const roundButtons = document.querySelectorAll(".round-btn");
     const themeToggle = document.querySelector(".theme-toggle");
+    const targetButtons = document.querySelectorAll(".target-switch button");
+    const keypadButtons = document.querySelectorAll(".keypad-grid .key");
 
     const numberFormatter = new Intl.NumberFormat("ja-JP");
     let unit = 100;
+    let activeInput = totalInput;
+
+    const storage = {
+      get(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch {
+          return null;
+        }
+      },
+      set(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // 保存不可の場合は何もしない
+        }
+      },
+    };
 
     const getTheme = () => {
-      const stored = localStorage.getItem("theme");
+      const stored = storage.get("theme");
       if (stored) return stored;
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     };
 
     const applyTheme = (theme) => {
       document.documentElement.setAttribute("data-theme", theme);
+      document.body.setAttribute("data-theme", theme);
       themeToggle.textContent = theme === "dark" ? "☀" : "🌙";
     };
 
     const setTheme = (theme) => {
-      localStorage.setItem("theme", theme);
+      storage.set("theme", theme);
       applyTheme(theme);
     };
 
     const formatYen = (value) => `${numberFormatter.format(Math.abs(value))}円`;
+    const formatPeople = (value) => `${numberFormatter.format(value)}人`;
+
+    const syncActiveField = (target) => {
+      activeInput = target;
+      targetButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.target === target.id);
+      });
+    };
+
+    const updateNumericInput = (input, nextValue) => {
+      const sanitized = nextValue.replace(/^0+(?=\d)/, "");
+      input.value = sanitized.length ? sanitized : "0";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+
+    const appendDigits = (digits) => {
+      const current = activeInput.value || "0";
+      const next = current === "0" ? digits : `${current}${digits}`;
+      updateNumericInput(activeInput, next);
+    };
+
+    const backspace = () => {
+      const current = activeInput.value || "0";
+      const next = current.length <= 1 ? "0" : current.slice(0, -1);
+      updateNumericInput(activeInput, next);
+    };
+
+    const clearAll = () => {
+      updateNumericInput(totalInput, "0");
+      updateNumericInput(peopleInput, "1");
+    };
 
     const compute = () => {
       const total = Math.max(0, Number(totalInput.value));
@@ -263,6 +434,8 @@
       perPersonEl.textContent = `${formatYen(roundedPer)} / 人`;
       roundedTotalEl.textContent = formatYen(roundedTotal);
       diffAmountEl.textContent = formatYen(diff);
+      totalDisplayEl.textContent = formatYen(total);
+      peopleDisplayEl.textContent = formatPeople(people);
 
       if (diff === 0) {
         differenceEl.textContent = "ぴったり";
@@ -285,12 +458,37 @@
     totalInput.addEventListener("input", compute);
     peopleInput.addEventListener("input", compute);
 
+    targetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.target === "total" ? totalInput : peopleInput;
+        syncActiveField(target);
+      });
+    });
+
+    keypadButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const { action, value } = button.dataset;
+        if (action === "backspace") {
+          backspace();
+          return;
+        }
+        if (action === "clear") {
+          clearAll();
+          return;
+        }
+        if (value) {
+          appendDigits(value);
+        }
+      });
+    });
+
     themeToggle.addEventListener("click", () => {
       const current = document.documentElement.getAttribute("data-theme") || "light";
       setTheme(current === "dark" ? "light" : "dark");
     });
 
     applyTheme(getTheme());
+    syncActiveField(totalInput);
     compute();
   </script>
 </body>
