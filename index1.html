@@ -239,10 +239,6 @@
       <div class="title">割り勘</div>
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
     </div>
-
-    <input type="hidden" id="total" value="0" />
-    <input type="hidden" id="people" value="2" />
-
     <div class="rounding">
       <div class="label">丸め単位</div>
       <div class="rounding-buttons" role="group" aria-label="丸め単位">
@@ -389,6 +385,35 @@
 
     totalInput.addEventListener("input", compute);
     peopleInput.addEventListener("input", compute);
+    totalInput.addEventListener("focus", () => syncActiveField(totalInput));
+    peopleInput.addEventListener("focus", () => syncActiveField(peopleInput));
+    totalInput.addEventListener("click", () => syncActiveField(totalInput));
+    peopleInput.addEventListener("click", () => syncActiveField(peopleInput));
+
+    targetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = button.dataset.target === "total" ? totalInput : peopleInput;
+        syncActiveField(target);
+        target.focus();
+      });
+    });
+
+    keypadButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const { action, value } = button.dataset;
+        if (action === "backspace") {
+          backspace();
+          return;
+        }
+        if (action === "clear") {
+          clearAll();
+          return;
+        }
+        if (value) {
+          appendDigits(value);
+        }
+      });
+    });
 
     targetButtons.forEach((button) => {
       button.addEventListener("click", () => {
