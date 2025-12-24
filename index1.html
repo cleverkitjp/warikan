@@ -222,16 +222,26 @@
     <div class="result" aria-live="polite">
       <div class="result-main" id="perPerson">0円</div>
       <div class="result-sub" id="difference">人数を入れてください</div>
-      <div class="result-inputs" role="group" aria-label="入力欄">
-        <button class="result-field active" type="button" data-target="total">
-          <span>合計金額</span>
-          <strong id="totalDisplay">0円</strong>
-        </button>
-        <button class="result-field" type="button" data-target="people">
-          <span>人数</span>
-          <strong id="peopleDisplay">1人</strong>
-        </button>
+    </div>
+
+    <div class="rounding">
+      <div class="label">丸め単位</div>
+      <div class="rounding-buttons" role="group" aria-label="丸め単位">
+        <button class="round-btn active" type="button" data-unit="100">100</button>
+        <button class="round-btn" type="button" data-unit="500">500</button>
+        <button class="round-btn" type="button" data-unit="1000">1000</button>
       </div>
+    </div>
+
+    <div class="result-inputs" role="group" aria-label="入力欄">
+      <button class="result-field active" type="button" data-target="total">
+        <span>合計金額</span>
+        <strong id="totalDisplay">0円</strong>
+      </button>
+      <button class="result-field" type="button" data-target="people">
+        <span>人数</span>
+        <strong id="peopleDisplay">1人</strong>
+      </button>
     </div>
 
     <div class="keypad" aria-label="数字キーパッド">
@@ -249,15 +259,6 @@
         <button class="key" type="button" data-value="0">0</button>
         <button class="key accent" type="button" data-action="backspace">⌫</button>
         <button class="key action wide" type="button" data-action="clear">クリア</button>
-      </div>
-    </div>
-
-    <div class="rounding">
-      <div class="label">丸め単位</div>
-      <div class="rounding-buttons" role="group" aria-label="丸め単位">
-        <button class="round-btn active" type="button" data-unit="100">100</button>
-        <button class="round-btn" type="button" data-unit="500">500</button>
-        <button class="round-btn" type="button" data-unit="1000">1000</button>
       </div>
     </div>
   </div>
@@ -385,6 +386,7 @@
     resultFields.forEach((field) => {
       field.addEventListener("click", () => {
         updateActiveField(field.dataset.target);
+        setValue(field.dataset.target, "0");
       });
     });
 
