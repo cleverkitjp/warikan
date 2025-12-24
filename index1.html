@@ -211,6 +211,31 @@
       padding: 14px 0;
       letter-spacing: 0.08em;
     }
+    .inputs {
+      display: grid;
+      gap: 16px;
+    }
+    .input-group {
+      display: grid;
+      gap: 6px;
+    }
+    .input {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-size: 34px;
+      font-weight: 700;
+      background: var(--bg);
+      color: var(--text);
+      text-align: right;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
     @media (max-width: 480px) {
       body {
         padding: 12px;
@@ -238,6 +263,16 @@
     <div class="header">
       <div class="title">割り勘</div>
       <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
+    </div>
+    <div class="inputs" aria-label="金額入力">
+      <div class="input-group">
+        <label class="label" for="total">合計金額</label>
+        <input class="input" id="total" type="number" inputmode="numeric" min="0" value="0" />
+      </div>
+      <div class="input-group">
+        <label class="label" for="people">人数</label>
+        <input class="input" id="people" type="number" inputmode="numeric" min="1" value="1" />
+      </div>
     </div>
     <div class="rounding">
       <div class="label">丸め単位</div>
@@ -395,47 +430,6 @@
         const target = button.dataset.target === "total" ? totalInput : peopleInput;
         syncActiveField(target);
         target.focus();
-      });
-    });
-
-    keypadButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const { action, value } = button.dataset;
-        if (action === "backspace") {
-          backspace();
-          return;
-        }
-        if (action === "clear") {
-          clearAll();
-          return;
-        }
-        if (value) {
-          appendDigits(value);
-        }
-      });
-    });
-
-    targetButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const target = button.dataset.target === "total" ? totalInput : peopleInput;
-        syncActiveField(target);
-      });
-    });
-
-    keypadButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const { action, value } = button.dataset;
-        if (action === "backspace") {
-          backspace();
-          return;
-        }
-        if (action === "clear") {
-          clearAll();
-          return;
-        }
-        if (value) {
-          appendDigits(value);
-        }
       });
     });
 
