@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>割り勘ミニ電卓</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f5f6f8;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0f4c81;
+      --accent-strong: #0b3a63;
+      --border: #d6d9de;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      --toggle: #e2e8f0;
+    }
+    [data-theme="dark"] {
+      --bg: #10131a;
+      --panel: #171b24;
+      --text: #f8fafc;
+      --muted: #cbd5f5;
+      --accent: #54a6ff;
+      --accent-strong: #3b86d9;
+      --border: #2b3242;
+      --shadow: 0 16px 35px rgba(0, 0, 0, 0.45);
+      --toggle: #252b39;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .app {
+      width: min(560px, 100%);
+      background: var(--panel);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 22px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .theme-toggle {
+      border: 0;
+      background: var(--toggle);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px var(--border);
+      min-width: 72px;
+    }
+    .input-grid {
+      display: grid;
+      gap: 18px;
+    }
+    .field {
+      display: grid;
+      gap: 10px;
+    }
+    .label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .input {
+      width: 100%;
+      font-size: 36px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      text-align: right;
+    }
+    .field.is-active .input {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    .rounding {
+      display: grid;
+      gap: 12px;
+    }
+    .rounding-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .round-btn {
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 0;
+      font-size: 20px;
+      font-weight: 700;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .round-btn.active {
+      background: var(--accent);
+      border-color: var(--accent-strong);
+      color: #fff;
+    }
+    .result {
+      background: var(--bg);
+      border-radius: 24px;
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+      border: 2px solid var(--border);
+    }
+    .result-main {
+      font-size: clamp(32px, 6vw, 48px);
+      font-weight: 800;
+      text-align: center;
+    }
+    .result-sub {
+      font-size: clamp(16px, 3vw, 20px);
+      text-align: center;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .breakdown span {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .keypad {
+      display: grid;
+      gap: 12px;
+    }
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .keypad-btn {
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 0;
+      font-size: 26px;
+      font-weight: 800;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      min-height: 62px;
+    }
+    .keypad-btn:active {
+      transform: scale(0.98);
+    }
+    .keypad-btn[data-action="backspace"] {
+      color: var(--muted);
+      font-size: 22px;
+    }
+    .keypad-btn[data-action="clear"] {
+      background: #a42736;
+      border-color: #8f2030;
+      color: #fff;
+      grid-column: 1 / -1;
+      font-size: 22px;
+      letter-spacing: 0.08em;
+    }
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+      }
+      .app {
+        padding: 22px;
+        border-radius: 22px;
+      }
+      .input {
+        font-size: 30px;
+      }
+      .round-btn {
+        padding: 14px 0;
+        font-size: 18px;
+      }
+      .keypad-btn {
+        font-size: 22px;
+        min-height: 56px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">割り勘</div>
+      <button class="theme-toggle" type="button" aria-label="テーマ切替">🌙</button>
+    </div>
+
+    <div class="input-grid">
+      <label class="field is-active" data-field="total">
+        <span class="label">合計金額（円）</span>
+        <input class="input" type="number" inputmode="numeric" min="0" step="1" id="total" value="0" />
+      </label>
+      <label class="field" data-field="people">
+        <span class="label">人数（人）</span>
+        <input class="input" type="number" inputmode="numeric" min="1" step="1" id="people" value="2" />
+      </label>
+    </div>
+
+    <div class="rounding">
+      <div class="label">丸め単位</div>
+      <div class="rounding-buttons" role="group" aria-label="丸め単位">
+        <button class="round-btn active" type="button" data-unit="100">100</button>
+        <button class="round-btn" type="button" data-unit="500">500</button>
+        <button class="round-btn" type="button" data-unit="1000">1000</button>
+      </div>
+    </div>
+
+    <div class="result" aria-live="polite">
+      <div class="result-main" id="perPerson">0円</div>
+      <div class="result-sub" id="difference">人数を入れてください</div>
+      <div class="breakdown">
+        <div>
+          <span>丸め後合計</span>
+          <div id="roundedTotal">0円</div>
+        </div>
+        <div>
+          <span>差分</span>
+          <div id="diffAmount">0円</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="keypad" aria-label="数字入力">
+      <div class="keypad-grid">
+        <button class="keypad-btn" type="button" data-key="1">1</button>
+        <button class="keypad-btn" type="button" data-key="2">2</button>
+        <button class="keypad-btn" type="button" data-key="3">3</button>
+        <button class="keypad-btn" type="button" data-key="4">4</button>
+        <button class="keypad-btn" type="button" data-key="5">5</button>
+        <button class="keypad-btn" type="button" data-key="6">6</button>
+        <button class="keypad-btn" type="button" data-key="7">7</button>
+        <button class="keypad-btn" type="button" data-key="8">8</button>
+        <button class="keypad-btn" type="button" data-key="9">9</button>
+        <button class="keypad-btn" type="button" data-key="00">00</button>
+        <button class="keypad-btn" type="button" data-key="0">0</button>
+        <button class="keypad-btn" type="button" data-action="backspace">⌫</button>
+      </div>
+      <button class="keypad-btn" type="button" data-action="clear">クリア</button>
+    </div>
+  </div>
+
+  <script>
+    const totalInput = document.getElementById("total");
+    const peopleInput = document.getElementById("people");
+    const perPersonEl = document.getElementById("perPerson");
+    const differenceEl = document.getElementById("difference");
+    const roundedTotalEl = document.getElementById("roundedTotal");
+    const diffAmountEl = document.getElementById("diffAmount");
+    const roundButtons = document.querySelectorAll(".round-btn");
+    const themeToggle = document.querySelector(".theme-toggle");
+    const keypadButtons = document.querySelectorAll(".keypad-btn");
+    const fields = document.querySelectorAll(".field");
+
+    const numberFormatter = new Intl.NumberFormat("ja-JP");
+    let unit = 100;
+    let activeInput = totalInput;
+
+    const setActiveField = (input) => {
+      activeInput = input;
+      fields.forEach((field) => {
+        field.classList.toggle("is-active", field.contains(input));
+      });
+    };
+
+    const getTheme = () => {
+      const stored = localStorage.getItem("theme");
+      if (stored) return stored;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    };
+
+    const applyTheme = (theme) => {
+      document.documentElement.setAttribute("data-theme", theme);
+      themeToggle.textContent = theme === "dark" ? "☀" : "🌙";
+    };
+
+    const setTheme = (theme) => {
+      localStorage.setItem("theme", theme);
+      applyTheme(theme);
+    };
+
+    const formatYen = (value) => `${numberFormatter.format(Math.abs(value))}円`;
+
+    const normalizeInput = (input, value) => {
+      if (input === peopleInput) {
+        const numeric = Math.max(1, Number(value || 0));
+        return String(numeric);
+      }
+      const numeric = Math.max(0, Number(value || 0));
+      return String(numeric);
+    };
+
+    const appendKey = (key) => {
+      const current = activeInput.value;
+      if (key === "00" && current === "0") return;
+      const nextValue = current === "0" ? key : `${current}${key}`;
+      activeInput.value = normalizeInput(activeInput, nextValue);
+      compute();
+    };
+
+    const backspace = () => {
+      const current = activeInput.value;
+      const trimmed = current.length > 1 ? current.slice(0, -1) : "0";
+      activeInput.value = normalizeInput(activeInput, trimmed);
+      compute();
+    };
+
+    const clearValue = () => {
+      activeInput.value = normalizeInput(activeInput, activeInput === peopleInput ? "1" : "0");
+      compute();
+    };
+
+    const compute = () => {
+      const total = Math.max(0, Number(totalInput.value));
+      const people = Math.max(1, Number(peopleInput.value));
+      const per = total / people;
+      const roundedPer = Math.round(per / unit) * unit;
+      const roundedTotal = roundedPer * people;
+      const diff = roundedTotal - total;
+
+      perPersonEl.textContent = `${formatYen(roundedPer)} / 人`;
+      roundedTotalEl.textContent = formatYen(roundedTotal);
+      diffAmountEl.textContent = formatYen(diff);
+
+      if (diff === 0) {
+        differenceEl.textContent = "ぴったり";
+      } else if (diff > 0) {
+        differenceEl.textContent = `誰か1人がお釣り ${formatYen(diff)}を受け取る`;
+      } else {
+        differenceEl.textContent = `誰か1人が ${formatYen(diff)} 多く払う`;
+      }
+    };
+
+    roundButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        roundButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        unit = Number(button.dataset.unit);
+        compute();
+      });
+    });
+
+    totalInput.addEventListener("input", compute);
+    peopleInput.addEventListener("input", compute);
+
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "light";
+      setTheme(current === "dark" ? "light" : "dark");
+    });
+
+    totalInput.addEventListener("focus", () => setActiveField(totalInput));
+    peopleInput.addEventListener("focus", () => setActiveField(peopleInput));
+    fields.forEach((field) => {
+      field.addEventListener("click", () => {
+        const input = field.querySelector("input");
+        if (input) {
+          input.focus();
+          setActiveField(input);
+        }
+      });
+    });
+
+    keypadButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.key;
+        const action = button.dataset.action;
+        if (key) {
+          appendKey(key);
+          return;
+        }
+        if (action === "backspace") {
+          backspace();
+        }
+        if (action === "clear") {
+          clearValue();
+        }
+      });
+    });
+
+    applyTheme(getTheme());
+    compute();
+  </script>
+</body>
+</html>
